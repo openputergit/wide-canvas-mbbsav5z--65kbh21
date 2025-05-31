@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share File Interface</title>
+    <script src="https://unpkg.com/@tailwindcss/typography@0.5.10/dist/typography.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4263EB;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg mt-10 p-6">
+        <div id="shareForm" class="space-y-6">
+            <h2 class="text-2xl font-semibold mb-4">Share File</h2>
+            <p class="text-gray-600">document.pdf</p>
+            
+            <div class="flex space-x-8 border-b pb-2">
+                <button class="text-blue-600 font-medium pb-2 border-b-2 border-blue-600" id="publicBtn">Public Share</button>
+                <button class="text-gray-500 font-medium" id="privateBtn">Private Share</button>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <span class="text-gray-700">Password Protection</span>
+                <label class="toggle">
+                    <input type="checkbox" id="passwordToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-gray-700">Expiration</label>
+                <select class="w-full p-2 border rounded-lg" id="expiration">
+                    <option>1 day</option>
+                    <option>7 days</option>
+                    <option>30 days</option>
+                    <option>Never</option>
+                </select>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-gray-700">Download Limit</label>
+                <input type="text" class="w-full p-2 border rounded-lg" value="No limit" id="downloadLimit">
+            </div>
+
+            <div class="space-y-3">
+                <label class="block text-gray-700">Permissions</label>
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" checked class="w-4 h-4 text-blue-600" id="viewOnly">
+                        <label class="ml-2">View only</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" class="w-4 h-4 text-blue-600" id="allowDownload">
+                        <label class="ml-2">Allow download</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" class="w-4 h-4 text-blue-600" id="allowEdit">
+                        <label class="ml-2">Allow edit</label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition" id="generateBtn">
+                Generate Link
+            </button>
+
+            <button class="w-full text-gray-600 py-2 hover:text-gray-800 transition">Cancel</button>
+        </div>
+
+        <!-- Generated Link Section (Initially Hidden) -->
+        <div id="linkSection" class="space-y-6 hidden">
+            <h2 class="text-2xl font-semibold mb-4">Share Link Generated</h2>
+            <div class="flex items-center space-x-2">
+                <input type="text" id="generatedLink" readonly class="w-full p-3 border rounded-lg bg-gray-50" value="https://example.com/share/abc123">
+                <button onclick="copyLink()" class="p-3 text-blue-600 hover:bg-gray-100 rounded-lg" title="Copy Link">
+                    <i class="bi bi-clipboard"></i>
+                </button>
+                <button onclick="shareLink()" class="p-3 text-blue-600 hover:bg-gray-100 rounded-lg" title="Share Link">
+                    <i class="bi bi-share"></i>
+                </button>
+            </div>
+            <button onclick="backToForm()" class="w-full text-gray-600 py-2 hover:text-gray-800 transition">
+                Back
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const shareForm = document.getElementById('shareForm');
+        const linkSection = document.getElementById('linkSection');
+        const generateBtn = document.getElementById('generateBtn');
+        const publicBtn = document.getElementById('publicBtn');
+        const privateBtn = document.getElementById('privateBtn');
+
+        generateBtn.addEventListener('click', () => {
+            shareForm.classList.add('hidden');
+            linkSection.classList.remove('hidden');
+        });
+
+        function backToForm() {
+            shareForm.classList.remove('hidden');
+            linkSection.classList.add('hidden');
+        }
+
+        function copyLink() {
+            const linkInput = document.getElementById('generatedLink');
+            linkInput.select();
+            document.execCommand('copy');
+            alert('Link copied to clipboard!');
+        }
+
+        function shareLink() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Shared File',
+                    text: 'Check out this shared file',
+                    url: document.getElementById('generatedLink').value
+                }).catch(console.error);
+            } else {
+                alert('Web Share API not supported in your browser');
+            }
+        }
+
+        publicBtn.addEventListener('click', () => {
+            publicBtn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            publicBtn.classList.remove('text-gray-500');
+            privateBtn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            privateBtn.classList.add('text-gray-500');
+        });
+
+        privateBtn.addEventListener('click', () => {
+            privateBtn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            privateBtn.classList.remove('text-gray-500');
+            publicBtn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            publicBtn.classList.add('text-gray-500');
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
